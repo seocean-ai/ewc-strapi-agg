@@ -40,7 +40,8 @@ steps:
 
 substitutions:
   ###_IMAGE: ${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${REPO_NAME}:${SHORT_SHA}
-  _IMAGE: ${LOCATION}-docker.pkg.dev/localrepo/${PROJECT_ID}-${REPO_NAME}-${BRANCH_NAME}-${TAG_NAME}:${SHORT_SHA}
+  #_IMAGE: ${LOCATION}-docker.pkg.dev/uforepo/${PROJECT_ID}-${REPO_NAME}-${BRANCH_NAME}-${TAG_NAME}:${SHORT_SHA}
+  _IMAGE: ${LOCATION}-docker.pkg.dev/${PROJECT_ID}/uforepo/${REPO_NAME}-${BRANCH_NAME}:${SHORT_SHA}
 
 options:
   logging: CLOUD_LOGGING_ONLY
