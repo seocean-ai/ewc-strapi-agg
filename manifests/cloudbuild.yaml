@@ -1,0 +1,45 @@
+steps:
+  # Шаг 1: Сборка Docker-образа
+  - name: "gcr.io/cloud-builders/docker"
+    id: "Build Docker Image"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        docker build \
+          -t ${_IMAGE} \
+          .
+
+  # Шаг 2: Отправка Docker-образа в Artifact Registry
+  - name: "gcr.io/cloud-builders/docker"
+    id: "Push Docker Image"
+    args: ["push", "${_IMAGE}"]
+
+  # Шаг 3: Обновление образа в манифесте Kubernetes
+  - name: "gcr.io/cloud-builders/gcloud"
+    id: "Update Image in Manifest"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        sed -i "s|DOCKER_IMAGE|${_IMAGE}|g" manifests/deployment.yml
+
+  # Шаг 4: Развертывание в GKE
+  - name: "gcr.io/cloud-builders/kubectl"
+    id: "Deploy to GKE"
+    args:
+      - "apply"
+      - "-f"
+      - "manifests/deployment.yml"
+      - "-f"
+      - "manifests/service.yml"
+
+    env:
+      - "CLOUDSDK_COMPUTE_ZONE=${LOCATION}" # Зона вашего GKE кластера
+      - "CLOUDSDK_CONTAINER_CLUSTER=$_CLUSTER_NAME" # Имя вашего GKE кластера
+
+substitutions:
+  _IMAGE: ${LOCATION}-docker.pkg.dev/${PROJECT_ID}/$REPO_NAME/$REPO_NAME:${SHORT_SHA}
+
+options:
+  logging: CLOUD_LOGGING_ONLY

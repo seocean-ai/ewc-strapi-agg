@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: strapiagg 
-          image: acr.azurecr.io/strapiagg
+          image: DOCKER_IMAGE
           ports:
           - containerPort: 1337
           resources:
