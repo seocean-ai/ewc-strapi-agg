@@ -1,4 +1,12 @@
 steps:
+  - name: "gcr.io/cloud-builders/docker"
+    id: "Debug"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        echo $_CLUSTER_NAME
+
   # Шаг 1: Сборка Docker-образа
   - name: "gcr.io/cloud-builders/docker"
     id: "Build Docker Image"
