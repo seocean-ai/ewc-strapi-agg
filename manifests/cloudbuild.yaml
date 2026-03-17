@@ -1,11 +1,11 @@
 steps:
   - name: "gcr.io/cloud-builders/docker"
-    id: "Debug"
+    id: "Debug ENV variables "
     entrypoint: "bash"
     args:
       - "-c"
       - |
-        echo $_CLUSTER_NAME
+        env | sort
 
   # Шаг 1: Сборка Docker-образа
   - name: "gcr.io/cloud-builders/docker"
