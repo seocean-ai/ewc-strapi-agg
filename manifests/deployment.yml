@@ -1,0 +1,41 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: strapiagg 
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: strapiagg
+  template:
+    metadata:
+      labels:
+        app: strapiagg 
+    spec:
+      containers:
+        - name: strapiagg 
+          image: acr.azurecr.io/strapiagg
+          ports:
+          - containerPort: 1337
+          resources:
+            limits:
+              memory: "4Gi"
+              cpu: "2000m"
+            requests:
+              memory: "2Gi"
+              cpu: "1000m"
+          envFrom:
+            - secretRef:
+                name: strapi-agg-env
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 1337
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 1337
+            initialDelaySeconds: 60
+            periodSeconds: 30

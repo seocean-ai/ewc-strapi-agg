@@ -1,0 +1,33 @@
+{
+  "kind": "collectionType",
+  "collectionName": "accounts",
+  "info": {
+    "singularName": "account",
+    "pluralName": "accounts",
+    "displayName": "Account"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "buyer_board": {
+      "type": "string"
+    },
+    "account": {
+      "type": "string"
+    },
+    "mcc": {
+      "type": "string"
+    },
+    "extra_account": {
+      "type": "string"
+    },
+    "domain_status": {
+      "type": "integer"
+    },
+    "domain": {
+      "type": "string"
+    }
+  }
+}

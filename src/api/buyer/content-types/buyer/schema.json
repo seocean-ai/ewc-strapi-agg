@@ -1,0 +1,33 @@
+{
+  "kind": "collectionType",
+  "collectionName": "buyers",
+  "info": {
+    "singularName": "buyer",
+    "pluralName": "buyers",
+    "displayName": "Buyer"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "board_name": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "last_update": {
+      "type": "datetime"
+    },
+    "update_start": {
+      "type": "datetime"
+    },
+    "active": {
+      "type": "boolean",
+      "default": false
+    },
+    "sheet_id": {
+      "type": "string"
+    }
+  }
+}
