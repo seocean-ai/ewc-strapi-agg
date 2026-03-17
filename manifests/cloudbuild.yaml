@@ -39,6 +39,7 @@ steps:
       - "CLOUDSDK_CONTAINER_CLUSTER=$_CLUSTER_NAME" # Имя вашего GKE кластера
 
 substitutions:
+  #_IMAGE: ${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${REPO_NAME}:${SHORT_SHA}
   _IMAGE: ${LOCATION}-docker.pkg.dev/localrepo/${PROJECT_ID}-${REPO_NAME}-${BRANCH_NAME}-${TAG_NAME}:${SHORT_SHA}
 
 options:
