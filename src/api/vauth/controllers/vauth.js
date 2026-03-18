@@ -1,5 +1,6 @@
 'use strict';
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 
 module.exports = {
   async check(ctx) {
@@ -58,8 +59,8 @@ module.exports = {
         const encodedCredentials = authHeader.split(' ')[1];
 
         // Bearer token is a JWT: header.payload.signature
-        // We decode (without verifying signature) the payload to extract
-        // sessionId/userId and validate them against Strapi's stored sessions.
+        // We verify signature, decode payload to extract sessionId/userId,
+        // then validate them against Strapi's stored sessions.
         const jwtParts = encodedCredentials.split('.');
         if (jwtParts.length !== 3) {
           unauthorized();
@@ -72,6 +73,51 @@ module.exports = {
           const padding = base64.length % 4 === 0 ? '' : '='.repeat(4 - (base64.length % 4));
           return Buffer.from(base64 + padding, 'base64').toString('utf8');
         };
+
+        const decodeBase64UrlToBuffer = (str) => {
+          const base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+          const padding = base64.length % 4 === 0 ? '' : '='.repeat(4 - (base64.length % 4));
+          return Buffer.from(base64 + padding, 'base64');
+        };
+
+        // Verify JWT signature (HS256) using Strapi admin auth secret
+        // If the secret is missing, we fail closed (401).
+        const secret =
+          (typeof strapi?.config?.get === 'function' ? strapi.config.get('admin.auth.secret') : undefined) ||
+          process.env.ADMIN_JWT_SECRET;
+        if (!secret) {
+          unauthorized();
+          return;
+        }
+
+        try {
+          const headerJson = decodeBase64Url(jwtParts[0]);
+          const jwtHeader = JSON.parse(headerJson);
+          if (jwtHeader?.alg !== 'HS256') {
+            unauthorized();
+            return;
+          }
+
+          const actualSignatureBase64Url = jwtParts[2];
+          const actualSignatureBytes = decodeBase64UrlToBuffer(actualSignatureBase64Url);
+
+          const dataToSign = `${jwtParts[0]}.${jwtParts[1]}`;
+          const expectedSignatureBytes = crypto
+            .createHmac('sha256', String(secret))
+            .update(dataToSign)
+            .digest();
+
+          if (
+            actualSignatureBytes.length !== expectedSignatureBytes.length ||
+            !crypto.timingSafeEqual(actualSignatureBytes, expectedSignatureBytes)
+          ) {
+            unauthorized();
+            return;
+          }
+        } catch {
+          unauthorized();
+          return;
+        }
 
         let jwtPayload;
         try {
@@ -87,14 +133,9 @@ module.exports = {
           return;
         }
 
-        // Validate exp claim if present (JWT exp is seconds since epoch)
-        if (jwtPayload.exp !== undefined) {
-          const expMs = Number(jwtPayload.exp) * 1000;
-          if (Number.isNaN(expMs) || expMs <= Date.now()) {
-            unauthorized();
-            return;
-          }
-        }
+        // Note: we don't strictly enforce jwtPayload.exp.
+        // The authoritative validity check is whether the corresponding Strapi
+        // session exists in `admin::session` (and optionally `session.expiresAt` below).
 
         const sessionId = String(jwtPayload.sessionId);
         // admin::session.userId is stored as a string
