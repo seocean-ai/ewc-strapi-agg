@@ -57,29 +57,82 @@ module.exports = {
       if (authHeader.startsWith('Bearer ')) {
         const encodedCredentials = authHeader.split(' ')[1];
 
-        // Compatibility: treat Bearer token as base64("username:password")
-        const decoded = Buffer.from(encodedCredentials, 'base64').toString();
-        const [username, password] = decoded.split(':');
-
-        if (!username || !password) {
+        // Bearer token is a JWT: header.payload.signature
+        // We decode (without verifying signature) the payload to extract
+        // sessionId/userId and validate them against Strapi's stored sessions.
+        const jwtParts = encodedCredentials.split('.');
+        if (jwtParts.length !== 3) {
           unauthorized();
           return;
         }
 
-        // Look up user in Strapi users-permissions
-        const user = await strapi.db.query('plugin::users-permissions.user').findOne({
-          where: { username },
-          populate: ['role'],
+        const decodeBase64Url = (str) => {
+          // base64url -> base64
+          const base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+          const padding = base64.length % 4 === 0 ? '' : '='.repeat(4 - (base64.length % 4));
+          return Buffer.from(base64 + padding, 'base64').toString('utf8');
+        };
+
+        let jwtPayload;
+        try {
+          const payloadJson = decodeBase64Url(jwtParts[1]);
+          jwtPayload = JSON.parse(payloadJson);
+        } catch {
+          unauthorized();
+          return;
+        }
+
+        if (!jwtPayload || !jwtPayload.sessionId || !jwtPayload.userId) {
+          unauthorized();
+          return;
+        }
+
+        // Validate exp claim if present (JWT exp is seconds since epoch)
+        if (jwtPayload.exp !== undefined) {
+          const expMs = Number(jwtPayload.exp) * 1000;
+          if (Number.isNaN(expMs) || expMs <= Date.now()) {
+            unauthorized();
+            return;
+          }
+        }
+
+        const sessionId = String(jwtPayload.sessionId);
+        // admin::session.userId is stored as a string
+        const adminUserId = String(jwtPayload.userId);
+        // plugin::users-permissions.user.id is typically numeric; coerce when safe
+        const userId =
+          typeof jwtPayload.userId === 'string' && /^\d+$/.test(jwtPayload.userId)
+            ? Number(jwtPayload.userId)
+            : jwtPayload.userId;
+
+        // Validate that the session exists (Strapi session manager storage)
+        const session = await strapi.db.query('admin::session').findOne({
+          where: { sessionId, userId: adminUserId },
         });
 
-        if (!user) {
+        if (!session) {
           unauthorized();
           return;
         }
 
-        // Verify password
-        const valid = await bcrypt.compare(password, user.password);
-        if (!valid) {
+        // Optional expiry check if Strapi returns expiresAt
+        if (session.expiresAt) {
+          const expiresAtMs = new Date(session.expiresAt).getTime();
+          if (!Number.isNaN(expiresAtMs) && expiresAtMs <= Date.now()) {
+            unauthorized();
+            return;
+          }
+        }
+
+        // Look up the user and return NGINX headers
+        const user = await strapi.db
+          .query('plugin::users-permissions.user')
+          .findOne({
+            where: { id: userId },
+            populate: ['role'],
+          });
+
+        if (!user) {
           unauthorized();
           return;
         }
@@ -93,6 +146,7 @@ module.exports = {
       }
 
       unauthorized();
+      return;
 
     } catch (err) {
       ctx.status = 401;
