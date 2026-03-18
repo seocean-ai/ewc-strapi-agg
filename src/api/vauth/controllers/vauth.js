@@ -6,15 +6,16 @@ module.exports = {
   async check(ctx) {
     try {
       const authHeader = ctx.request.header.authorization;
-      const unauthorized = () => {
+      const unauthorized = (reason) => {
         ctx.status = 401;
         ctx.set('WWW-Authenticate', 'Basic realm="Authentication Required"');
+        if (reason) ctx.set('X-Vauth-Reason', reason);
         ctx.body = 'Unauthorized';
       };
 
       // No Authorization header → trigger popup
       if (!authHeader) {
-        unauthorized();
+        unauthorized('missing-authorization');
         return;
       }
 
@@ -25,7 +26,7 @@ module.exports = {
         const [username, password] = decoded.split(':');
 
         if (!username || !password) {
-          unauthorized();
+          unauthorized('basic-malformed-credentials');
           return;
         }
 
@@ -36,14 +37,14 @@ module.exports = {
         });
 
         if (!user) {
-          unauthorized();
+          unauthorized('basic-user-not-found');
           return;
         }
 
         // Verify password
         const valid = await bcrypt.compare(password, user.password);
         if (!valid) {
-          unauthorized();
+          unauthorized('basic-password-invalid');
           return;
         }
 
@@ -63,7 +64,7 @@ module.exports = {
         // then validate them against Strapi's stored sessions.
         const jwtParts = encodedCredentials.split('.');
         if (jwtParts.length !== 3) {
-          unauthorized();
+          unauthorized('jwt-not-3-parts');
           return;
         }
 
@@ -86,7 +87,7 @@ module.exports = {
           (typeof strapi?.config?.get === 'function' ? strapi.config.get('admin.auth.secret') : undefined) ||
           process.env.ADMIN_JWT_SECRET;
         if (!secret) {
-          unauthorized();
+          unauthorized('jwt-secret-missing');
           return;
         }
 
@@ -94,7 +95,7 @@ module.exports = {
           const headerJson = decodeBase64Url(jwtParts[0]);
           const jwtHeader = JSON.parse(headerJson);
           if (jwtHeader?.alg !== 'HS256') {
-            unauthorized();
+            unauthorized('jwt-unsupported-alg');
             return;
           }
 
@@ -111,11 +112,11 @@ module.exports = {
             actualSignatureBytes.length !== expectedSignatureBytes.length ||
             !crypto.timingSafeEqual(actualSignatureBytes, expectedSignatureBytes)
           ) {
-            unauthorized();
+            unauthorized('jwt-signature-invalid');
             return;
           }
         } catch {
-          unauthorized();
+          unauthorized('jwt-header-parse-failed');
           return;
         }
 
@@ -124,12 +125,12 @@ module.exports = {
           const payloadJson = decodeBase64Url(jwtParts[1]);
           jwtPayload = JSON.parse(payloadJson);
         } catch {
-          unauthorized();
+          unauthorized('jwt-payload-parse-failed');
           return;
         }
 
         if (!jwtPayload || !jwtPayload.sessionId || !jwtPayload.userId) {
-          unauthorized();
+          unauthorized('jwt-missing-claims');
           return;
         }
 
@@ -152,7 +153,7 @@ module.exports = {
         });
 
         if (!session) {
-          unauthorized();
+          unauthorized('admin-session-not-found');
           return;
         }
 
@@ -160,7 +161,7 @@ module.exports = {
         if (session.expiresAt) {
           const expiresAtMs = new Date(session.expiresAt).getTime();
           if (!Number.isNaN(expiresAtMs) && expiresAtMs <= Date.now()) {
-            unauthorized();
+            unauthorized('admin-session-expired');
             return;
           }
         }
@@ -174,7 +175,7 @@ module.exports = {
           });
 
         if (!user) {
-          unauthorized();
+          unauthorized('jwt-user-not-found');
           return;
         }
 
