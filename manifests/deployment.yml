@@ -27,6 +27,12 @@ spec:
           envFrom:
             - secretRef:
                 name: strapi-agg-env
+          startupProbe:
+            httpGet:
+                path: /api/vauth
+                port: 1337
+            failureThreshold: 30
+            periodSeconds: 10
           readinessProbe:
             httpGet:
               path: /api/vauth
