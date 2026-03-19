@@ -29,13 +29,13 @@ spec:
                 name: strapi-agg-env
           readinessProbe:
             httpGet:
-              path: /
+              path: /api/vauth
               port: 1337
             initialDelaySeconds: 30
             periodSeconds: 10
           livenessProbe:
             httpGet:
-              path: /
+              path: /api/vauth
               port: 1337
             initialDelaySeconds: 60
             periodSeconds: 30
