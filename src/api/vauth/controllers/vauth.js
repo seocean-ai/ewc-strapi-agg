@@ -10,7 +10,7 @@ module.exports = {
         ctx.status = 401;
         ctx.set('WWW-Authenticate', 'Basic realm="Authentication Required"');
         if (reason) ctx.set('X-Vauth-Reason', reason);
-        ctx.body = 'Unauthorized';
+        ctx.body = reason ? `Unauthorized:${reason}` : 'Unauthorized';
       };
 
       // No Authorization header → trigger popup

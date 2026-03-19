@@ -19,11 +19,11 @@ spec:
           - containerPort: 1337
           resources:
             limits:
-              memory: "4Gi"
-              cpu: "2000m"
-            requests:
               memory: "2Gi"
               cpu: "1000m"
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
           envFrom:
             - secretRef:
                 name: strapi-agg-env
