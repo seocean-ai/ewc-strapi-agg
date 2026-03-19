@@ -158,6 +158,7 @@ module.exports = {
         }
 
         // Optional expiry check if Strapi returns expiresAt
+        /*
         if (session.expiresAt) {
           const expiresAtMs = new Date(session.expiresAt).getTime();
           if (!Number.isNaN(expiresAtMs) && expiresAtMs <= Date.now()) {
@@ -165,7 +166,7 @@ module.exports = {
             return;
           }
         }
-
+        */
         // Look up the user and return NGINX headers
         const user = await strapi.db
           .query('plugin::users-permissions.user')
