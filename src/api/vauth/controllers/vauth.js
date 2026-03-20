@@ -9,6 +9,9 @@ module.exports = {
       const cookieHeader = ctx.request.header.cookie;
       const path = ctx.request.url;
       const method = ctx.request.method;
+
+      console.log('req', ctx.request);
+      
       const unauthorized = (reason) => {
         ctx.status = 401;
         ctx.set('WWW-Authenticate', 'Basic realm="Authentication Required"');
