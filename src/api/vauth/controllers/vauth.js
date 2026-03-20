@@ -5,7 +5,7 @@ const crypto = require('crypto');
 module.exports = {
   async check(ctx) {
     try {
-      const authHeader = ctx.request.header.authorization;
+      let authHeader = ctx.request.header.authorization;
       const cookieHeader = ctx.request.header.cookie;
       const path = ctx.request.url;
       const method = ctx.request.method;
