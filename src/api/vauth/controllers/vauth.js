@@ -19,7 +19,7 @@ module.exports = {
         if (reason) ctx.set('X-Vauth-Reason', reason);
         ctx.body = reason ? `Unauthorized:${reason}` : 'Unauthorized';
       };
-      if(path.startsWith('/admin/') && theurl.startsWith('/api/')) {//&& method === 'GET' 
+      if(path && path.startsWith('/admin/') && theurl.startsWith('/api/')) {//&& method === 'GET' 
         console.log('admin path'+ path);
         ctx.status = 200;
         ctx.body = 'OK';
