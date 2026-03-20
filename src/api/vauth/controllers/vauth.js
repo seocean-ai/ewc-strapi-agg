@@ -6,6 +6,7 @@ module.exports = {
   async check(ctx) {
     try {
       const authHeader = ctx.request.header.authorization;
+      const cookieHeader = ctx.request.header.cookie;
       const unauthorized = (reason) => {
         ctx.status = 401;
         ctx.set('WWW-Authenticate', 'Basic realm="Authentication Required"');
@@ -54,6 +55,21 @@ module.exports = {
         ctx.status = 200;
         ctx.body = 'OK';
         return;
+      }
+
+      if(cookieHeader && cookieHeader.startsWith('strapi_admin_refresh=')) {
+        const sessionId = cookieHeader.split('strapi_admin_refresh=')[1];
+        if(sessionId) {
+          authHeader = `Bearer ${sessionId}`;
+          return;
+        }
+        //const session = await strapi.db.query('admin::session').findOne({
+        //  where: { sessionId },
+        //});
+        //if (!session) {
+        //  unauthorized('admin-session-not-found');
+        //  return;
+        //}
       }
 
       if (authHeader.startsWith('Bearer ')) {
