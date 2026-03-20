@@ -11,7 +11,7 @@ module.exports = {
       const method = ctx.request.method;
 
       console.log('req', ctx.request);
-      
+
       const unauthorized = (reason) => {
         ctx.status = 401;
         ctx.set('WWW-Authenticate', 'Basic realm="Authentication Required"');
@@ -219,6 +219,7 @@ module.exports = {
       return;
 
     } catch (err) {
+      console.log('err', err);
       ctx.status = 401;
       ctx.set('WWW-Authenticate', 'Basic realm="Authentication Required"');
       ctx.body = 'Unauthorized';
