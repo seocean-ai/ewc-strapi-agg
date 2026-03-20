@@ -7,7 +7,7 @@ module.exports = {
     try {
       let authHeader = ctx.request.header.authorization;
       const cookieHeader = ctx.request.header.cookie;
-      const path = ctx.request.url;
+      const path = ctx.request.x-original-url;
       const method = ctx.request.method;
 
       console.log('req', ctx.request);
