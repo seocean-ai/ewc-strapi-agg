@@ -7,7 +7,8 @@ module.exports = {
     try {
       let authHeader = ctx.request.header.authorization;
       const cookieHeader = ctx.request.header.cookie;
-      const path = ctx.request.x-original-url;
+      const theurl = ctx.request.url;
+      const path = ctx.request.header['x-original-url'];
       const method = ctx.request.method;
 
       console.log('req', ctx.request);
@@ -18,7 +19,7 @@ module.exports = {
         if (reason) ctx.set('X-Vauth-Reason', reason);
         ctx.body = reason ? `Unauthorized:${reason}` : 'Unauthorized';
       };
-      if(path.startsWith('/admin/') && method === 'GET') {
+      if(path.startsWith('/admin/') && theurl.startsWith('/api/')) {//&& method === 'GET' 
         console.log('admin path'+ path);
         ctx.status = 200;
         ctx.body = 'OK';
