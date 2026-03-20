@@ -7,13 +7,21 @@ module.exports = {
     try {
       const authHeader = ctx.request.header.authorization;
       const cookieHeader = ctx.request.header.cookie;
+      const path = ctx.request.url;
+      const method = ctx.request.method;
       const unauthorized = (reason) => {
         ctx.status = 401;
         ctx.set('WWW-Authenticate', 'Basic realm="Authentication Required"');
         if (reason) ctx.set('X-Vauth-Reason', reason);
         ctx.body = reason ? `Unauthorized:${reason}` : 'Unauthorized';
       };
+      if(path.startsWith('/admin/') && method === 'GET') {
+        console.log('admin path'+ path);
+        ctx.status = 200;
+        ctx.body = 'OK';
+        return;
 
+      }
       // No Authorization header → trigger popup
       if (!authHeader) {
         unauthorized('missing-authorization');
