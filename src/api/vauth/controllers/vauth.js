@@ -8,19 +8,20 @@ module.exports = {
       let authHeader = ctx.request.header.authorization;
       const cookieHeader = ctx.request.header.cookie;
       const theurl = ctx.request.url;
-      const path = ctx.request.header['x-original-url'];
+      const orgiginalPath = ctx.request.header['x-original-url'];
       const method = ctx.request.method;
 
       console.log('req', ctx.request);
 
       const unauthorized = (reason) => {
+        console.log('unauthorized: ', reason);
         ctx.status = 401;
         ctx.set('WWW-Authenticate', 'Basic realm="Authentication Required"');
         if (reason) ctx.set('X-Vauth-Reason', reason);
         ctx.body = reason ? `Unauthorized:${reason}` : 'Unauthorized';
       };
-      if(path && path.startsWith('/admin/') && theurl.startsWith('/api/')) {//&& method === 'GET' 
-        console.log('admin path'+ path);
+      if(orgiginalPath && orgiginalPath.startsWith('/admin/') && theurl.startsWith('/api/')) {//&& method === 'GET' 
+        console.log('admin path'+ orgiginalPath);
         ctx.status = 200;
         ctx.body = 'OK';
         return;
