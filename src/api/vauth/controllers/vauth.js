@@ -9,6 +9,7 @@ module.exports = {
       const cookieHeader = ctx.request.header.cookie;
       const theurl = ctx.request.url;
       const orgiginalPath = ctx.request.header['x-original-url'];
+      const reqRedirect = ctx.request.header['x-auth-request-redirect'];
       const method = ctx.request.method;
 
       console.log('req', ctx.request);
@@ -20,7 +21,7 @@ module.exports = {
         if (reason) ctx.set('X-Vauth-Reason', reason);
         ctx.body = reason ? `Unauthorized:${reason}` : 'Unauthorized';
       };
-      if(orgiginalPath && orgiginalPath.startsWith('/admin/') && theurl.startsWith('/api/')) {//&& method === 'GET' 
+      if((orgiginalPath && orgiginalPath.startsWith('/admin/') || reqRedirect && reqRedirect.startsWith('/admin/')) && theurl.startsWith('/api/')) {//&& method === 'GET' 
         console.log('admin path'+ orgiginalPath);
         ctx.status = 200;
         ctx.body = 'OK';
