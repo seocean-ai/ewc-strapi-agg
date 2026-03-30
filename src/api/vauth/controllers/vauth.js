@@ -17,14 +17,15 @@ module.exports = {
       const unauthorized = (reason) => {
         console.log('unauthorized: ', reason);
         ctx.status = 401;
+		ctx.set('Content-Security-Policy', "default-src 'self';");
         ctx.set('WWW-Authenticate', 'Basic realm="Authentication Required"');
         if (reason) ctx.set('X-Vauth-Reason', reason);
-        ctx.body = reason ? `Unauthorized:${reason}` : 'Unauthorized';
+        //ctx.body = reason ? `Unauthorized:${reason}` : 'Unauthorized';
       };
       if((orgiginalPath && orgiginalPath.startsWith('/admin/') || reqRedirect && reqRedirect.startsWith('/admin/')) && theurl.startsWith('/api/')) {//&& method === 'GET' 
         console.log('admin path'+ orgiginalPath);
         ctx.status = 200;
-        ctx.body = 'OK';
+        //ctx.body = 'OK';
         return;
 
       }
@@ -67,7 +68,7 @@ module.exports = {
         ctx.set('X-Auth-User', user.username);
         ctx.set('X-Auth-Role', user.role?.name || 'user');
         ctx.status = 200;
-        ctx.body = 'OK';
+        //ctx.body = 'OK';
         return;
       }
 
@@ -214,7 +215,7 @@ module.exports = {
         ctx.set('X-Auth-User', user.username);
         ctx.set('X-Auth-Role', user.role?.name || 'user');
         ctx.status = 200;
-        ctx.body = 'OK';
+        //ctx.body = 'OK';
         return;
       }
 
@@ -225,7 +226,7 @@ module.exports = {
       console.log('err', err);
       ctx.status = 401;
       ctx.set('WWW-Authenticate', 'Basic realm="Authentication Required"');
-      ctx.body = 'Unauthorized';
+      //ctx.body = 'Unauthorized';
     }
   },
 };
