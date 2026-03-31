@@ -11,13 +11,13 @@ module.exports = {
       const orgiginalPath = ctx.request.header['x-original-url'];
       const reqRedirect = ctx.request.header['x-auth-request-redirect'];
       const method = ctx.request.method;
-
+	  //  more_set_headers "Content-Security-Policy: default-src 'self' https: data: blob: 'unsafe-inline' 'unsafe-eval';";
+		ctx.set('Content-Security-Policy', "default-src 'self';");
       console.log('req', ctx.request);
 
       const unauthorized = (reason) => {
         console.log('unauthorized: ', reason);
         ctx.status = 401;
-		ctx.set('Content-Security-Policy', "default-src 'self';");
         ctx.set('WWW-Authenticate', 'Basic realm="Authentication Required"');
         if (reason) ctx.set('X-Vauth-Reason', reason);
         //ctx.body = reason ? `Unauthorized:${reason}` : 'Unauthorized';
