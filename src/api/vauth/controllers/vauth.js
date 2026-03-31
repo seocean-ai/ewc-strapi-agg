@@ -12,7 +12,9 @@ module.exports = {
       const reqRedirect = ctx.request.header['x-auth-request-redirect'];
       const method = ctx.request.method;
 	  //  more_set_headers "Content-Security-Policy: default-src 'self' https: data: blob: 'unsafe-inline' 'unsafe-eval';";
-		ctx.set('Content-Security-Policy', "default-src 'self';");
+	    ctx.remove('Content-Security-Policy');
+		ctx.set('Content-Security-Policy', "default-src 'self' https: data: blob: 'unsafe-inline' 'unsafe-eval';");
+		//ctx.set('Content-Security-Policy', "default-src 'self';");
       console.log('req', ctx.request);
 
       const unauthorized = (reason) => {
